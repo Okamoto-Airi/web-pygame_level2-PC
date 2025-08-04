@@ -210,11 +210,11 @@ class Dragon(pygame.sprite.Sprite):
         # 一定確率で爆弾を投下（BOMB_PROBで制御）
         if random.random() < Dragon.BOMB_PROB:
             # # ステージが進むと爆弾の横方向速度もランダムで増加
-            # dx = (
+            # dy = (
             #     0 if Majo.stage.val <= 2 else (random.random() * 2.0 - 1.0) * self.speed
             # )
-            dx = 0  # 横方向の移動量（ステージ1は固定）
-            Bomb(self, dx)  # 爆弾生成
+            dy = 0  # 横方向の移動量（ステージ1は固定）
+            Bomb(self, dy)  # 爆弾生成
 
         # ドラゴンの爆破シーン（スコア0で爆発アニメ＆消滅）
         if self.hp == 0:
@@ -309,7 +309,7 @@ class Bomb(pygame.sprite.Sprite):
     継承: pygame.sprite.Sprite
     Args:
         dragon: 爆弾を落とすドラゴンインスタンス
-        dx: 横方向の移動量
+        dy: 上下方向の移動量
     """
 
     IMAGE_COLORS, IMAGE_OFFSET = 4, 3  # 爆弾の色数とアニメコマ数
@@ -320,10 +320,10 @@ class Bomb(pygame.sprite.Sprite):
     EXP_IMAGE_OFFSET = 7  # 爆発アニメのコマ数
     EXP_ANIME_COUNT = 5  # 爆発アニメの繰り返し回数
 
-    def __init__(self, dragon, dx):
+    def __init__(self, dragon, dy):
         # スプライトの初期化（所属グループに登録）
         # dragon: 爆弾を落とすドラゴンインスタンス
-        # dx: 横方向の移動量
+        # dy: 上下方向の移動量
         pygame.sprite.Sprite.__init__(self, self.containers)
         # 爆弾の色をランダムで決定（4色）
         self.image_color = int(random.random() * Bomb.IMAGE_COLORS)
@@ -339,11 +339,11 @@ class Bomb(pygame.sprite.Sprite):
         )
         self.rect = self.image.get_rect()  # 位置情報
         self.rect.midleft = dragon.rect.midleft  # ドラゴンの左から落下開始
-        self.dx = dx  # 上下方向の移動量
+        self.dy = dy  # 上下方向の移動量
 
     def update(self):
         # 毎フレーム左方向＋上下方向に移動
-        self.rect.move_ip(-Bomb.SPEED, self.dx)
+        self.rect.move_ip(-Bomb.SPEED, self.dy)
         # 画面左端に到達したら爆発アニメを生成し、爆弾自身は消滅
         if self.rect.left < SCREEN.left:
             Explosion(
