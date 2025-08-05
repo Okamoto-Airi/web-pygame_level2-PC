@@ -178,9 +178,9 @@ async def main():
     play_sound = load_sound("bgm_maoudamashii_fantasy15.ogg")  # プレイ中BGM
     play_sound.set_volume(0.03)  # 音量調整
     gameclear_sound = load_sound("clear.ogg")
-    gameclear_sound.set_volume(0.03)  # クリア音の音量調整
+    # gameclear_sound.set_volume(0.03)  # クリア音の音量調整
     gameover_sound = load_sound("gameover.ogg")
-    gameover_sound.set_volume(0.15)  # ゲームオーバー
+    # gameover_sound.set_volume(0.15)  # ゲームオーバー
 
     # スコア・ライフなどの初期化
     Majo.life = Score(
