@@ -23,7 +23,7 @@ class Background:
     def __init__(self, majo):
         # self.majo = majo  # 魔女インスタンス。魔女の位置に応じて山の表示を動かす。
         self.sky_image = load_image(
-            "bg_natural_sky.jpg", SCREEN.size
+            "red_sky.jpg", SCREEN.size
         )  # 空の画像を画面サイズで読み込み
         # self.mount_image = load_image(
         #     "bg_natural_mount_800x800.png"
@@ -111,7 +111,7 @@ class Majo(pygame.sprite.Sprite):
 
     def move(self):
         # 画面外に出ないように位置を制限（clamp_ipで自動補正）
-        self.rect.clamp_ip(SCREEN)
+        self.rect.clamp_ip(pygame.Rect((0, 40, 640, 440)))
         # # アニメーション用の画像切り替え（歩く動作）
         # self.image_off = (self.image_off + 1) % Majo.IMAGE_NUMS  # コマ番号を進める
         # # 向きは一定（例: 左向き）で固定
@@ -176,9 +176,9 @@ class Dragon(pygame.sprite.Sprite):
     START = SCREEN.midright  # 初期位置（画面右側）
     SPEED = 5  # 移動速度（ピクセル/フレーム）
     # LEFT, RIGHT = 0, 1  # 向き（左:0, 右:1）
-    BOMB_PROB = 0.03  # 爆弾投下確率（3%）
+    BOMB_PROB = 0.02  # 爆弾投下確率（3%）
     MINUS_POINT = 5  # ドラゴン撃破時の減点
-    MAX_HP = 50  # ドラゴンの最大HP
+    MAX_HP = 5  # ドラゴンの最大HP
     # 爆発アニメ
     EXP_IMAGE_WIDTH, EXP_IMAGE_HEIGHT = 320, 120  # 爆発画像の1コマの幅・高さ（ピクセル）
     EXP_IMAGE_OFFSET = 8  # 爆発アニメのコマ数
@@ -199,9 +199,9 @@ class Dragon(pygame.sprite.Sprite):
         # 毎フレーム上下に移動
         self.rect.move_ip(0, self.speed)
         # 画面端に到達したら進行方向を反転
-        if self.rect.top <= SCREEN.top or self.rect.bottom >= SCREEN.bottom:
+        if self.rect.top <= SCREEN.top + 40 or self.rect.bottom >= SCREEN.bottom:
             self.speed = -self.speed  # 方向転換
-        self.rect.clamp_ip(SCREEN)  # 画面外に出ないよう制限
+        self.rect.clamp_ip(pygame.Rect((0, 40, 640, 440)))  # 画面外に出ないよう制限
         # # 画像の向きは一定（例: 左向き）で固定
         # self.image = Dragon.images.subsurface(
         #     0, 0, Dragon.IMAGE_WIDTH, Dragon.IMAGE_HEIGHT

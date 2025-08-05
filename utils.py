@@ -62,18 +62,21 @@ def calculate_score_and_rank(screen, time_left, life_val, font):
     final_score = time_score + life_score
 
     if final_score >= 500:
-        rank = "GOLD"
+        # rank = "GOLD"
+        screen.blit(load_image("rank_Gold.png"), (SCREEN.centerx - 100, SCREEN.centery + 30))
     elif final_score >= 300:
-        rank = "SILVER"
+        # rank = "SILVER"
+        screen.blit(load_image("rank_Silver.png"), (SCREEN.centerx - 100, SCREEN.centery + 30))
     elif final_score >= 100:
-        rank = "BRONZE"
-    else:
-        rank = "NONE"
+        # rank = "BRONZE"
+        screen.blit(load_image("rank_Bronze.png"), (SCREEN.centerx - 110, SCREEN.centery + 30))
+    # else:
+    #     rank = "NONE"
 
-    score_img = font.render(f"FINAL SCORE: {final_score}", True, (245, 127, 23))
-    rank_img = font.render(f"RANK: {rank}", True, (245, 127, 23))
+    score_img = font.render(f"FINAL SCORE: {final_score}", True, (245, 245, 245))
     screen.blit(score_img, (SCREEN.centerx - 150, SCREEN.centery - 10))
-    screen.blit(rank_img, (SCREEN.centerx - 100, SCREEN.centery + 20))
+    # rank_img = font.render(f"RANK: {rank}", True, (245, 127, 23))
+    # screen.blit(rank_img, (SCREEN.centerx - 100, SCREEN.centery + 20))
 
     text1 = font.render("Restart (R) / Exit Game (Q)", True, (0, 0, 0))
     screen.blit(text1, (SCREEN.centerx - 200, SCREEN.centery + 100))

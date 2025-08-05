@@ -10,6 +10,8 @@ import sys
 # 非同期処理用
 import asyncio
 
+import js  # pygbag環境でのみ有効
+
 # スプライト関連クラスのインポート
 from sprites import Background, Majo, Dragon, Beam, Bomb, Explosion, Point
 
@@ -88,9 +90,26 @@ def collision_detection(majo, dragon, beam_g, bomb_g):
             Bomb.exp_sound,
         )
         Majo.life.val -= Majo.MINUS_LIFE  # ライフ減少
-        Point(Majo.MINUS_LIFE, majo.rect.center)  # ライフ減少表示
+        Point(Majo.MINUS_LIFE, (majo.rect.right + 10, majo.rect.centery))  # ライフ減少表示
         if Majo.life.val == 0:
             majo.kill()  # ライフ0で魔女消滅
+
+
+def stop_all_sounds(opening_sound, play_sound):
+    """全てのSoundインスタンスを停止する関数
+
+    Args:
+        opening_sound (_type_): オープニングBGM
+        play_sound (_type_): プレイ中BGM
+    """
+    pygame.mixer.music.stop()
+    opening_sound.stop()
+    play_sound.stop()
+    Beam.sound.stop()
+    Beam.exp_sound.stop()
+    Dragon.exp_sound.stop()
+    Bomb.exp_sound.stop()
+    pygame.mixer.stop()
 
 
 # =============================
@@ -147,23 +166,28 @@ async def main():
     Beam.exp_sound.set_volume(0.03)  # ビーム爆発音の音量調整（0.0～1.0）
 
     # タイトル・ゲームオーバー・クリア画面用画像の辞書
-    title_msg = {
-        INIT: load_image("opening-logo.png"),  # タイトル画像
-        GAMEOVER: load_image("gameover.png"),  # ゲームオーバー画像
-        CLEAR: load_image("gameclear.png"),  # クリア画像
-    }
+    # title_msg = {
+    #     INIT: load_image("opening-logo.png"),  # タイトル画像
+    #     # GAMEOVER: load_image("gameover.png"),  # ゲームオーバー画像
+    #     # CLEAR: load_image("gameclear.png"),  # クリア画像
+    # }
+    title_msg = load_image("opening-logo.png")  # タイトル画像
     opening_sound = load_sound("bgm_maoudamashii_healing08.ogg")  # タイトルBGM
     opening_sound.set_volume(0.03)  # 音量調整
     opening_sound.play(-1)  # ループ再生
     play_sound = load_sound("bgm_maoudamashii_fantasy15.ogg")  # プレイ中BGM
     play_sound.set_volume(0.03)  # 音量調整
+    gameclear_sound = load_sound("clear.ogg")
+    gameclear_sound.set_volume(0.03)  # クリア音の音量調整
+    gameover_sound = load_sound("gameover.ogg")
+    gameover_sound.set_volume(0.15)  # ゲームオーバー
 
     # スコア・ライフなどの初期化
     Majo.life = Score(
         initval=3,  # 初期ライフ
         maxval=3,  # 最大ライフ
         pos=(SCREEN.right - 165, 5),  # 表示位置
-        color=Score.RED,  # 色
+        color=(255, 255, 255),  # 白色
         font="ipaexg.ttf",  # フォント
         form="Player HP: #",  # 表示フォーマット
         pat="●○",  # ライフ表示パターン
@@ -203,7 +227,7 @@ async def main():
             elapsed_sec = (pygame.time.get_ticks() - start_ticks) // 1000  # 経過秒数
             time_left = max(0, TIME_LIMIT - elapsed_sec)  # 残り時間
             # 残り時間を画面左上に表示
-            timer_img = time_font.render(f"TIME: {time_left}", True, (0, 0, 0))
+            timer_img = time_font.render(f"TIME: {time_left}", True, (255, 255, 255))
             screen.blit(timer_img, (SCREEN.left + 10, 10))
 
             # 時間切れでゲームオーバー
@@ -220,18 +244,24 @@ async def main():
             calculate_score_and_rank(
                 screen, time_left, Majo.life.val, pygame.font.SysFont(None, 48)
             )
+            rq_font = pygame.font.SysFont(None, 48)
+            text1 = rq_font.render("Restart (R) / Exit Game (Q)", True, (0, 0, 0))
+            screen.blit(text1, (SCREEN.centerx - 200, SCREEN.centery + 100))
         elif game_status == GAMEOVER:
             font = pygame.font.Font("font/Bungee-Regular.ttf", 60)  # フォント設定
             game_msg = font.render("GAME OVER", True, (0, 0, 255))
             screen.blit(game_msg, (SCREEN.centerx - 180, SCREEN.centery - 100))
-            # ゲームオーバー時はスコアを表示
-            calculate_score_and_rank(
-                screen, time_left, Majo.life.val, pygame.font.SysFont(None, 48)
-            )
+            # # ゲームオーバー時はスコアを表示
+            # calculate_score_and_rank(
+            #     screen, time_left, Majo.life.val, pygame.font.SysFont(None, 48)
+            # )
+            rq_font = pygame.font.SysFont(None, 48)
+            text1 = rq_font.render("Restart (R) / Exit Game (Q)", True, (0, 0, 0))
+            screen.blit(text1, (SCREEN.centerx - 200, SCREEN.centery))
 
         # タイトル時はメッセージ画像を表示
         elif game_status == INIT:
-            screen.blit(title_msg[game_status], (100, 150))  # メッセージ画像描画
+            screen.blit(title_msg, (100, 100))  # メッセージ画像描画 
 
         # 画面の内容を更新（ダブルバッファリング）
         pygame.display.update()  # 画面更新
@@ -241,19 +271,24 @@ async def main():
         if game_status == PLAY and Majo.life.val == 0:
             game_status = GAMEOVER  # ゲームオーバー状態へ
             play_sound.stop()  # プレイBGM停止
-            opening_sound.play(-1)  # タイトルBGM再生
+            # opening_sound.play(-1)  # タイトルBGM再生
+            gameover_sound.play()  # ゲームオーバー音再生
         # ドラゴンスコアが0になったらクリア
         if game_status == PLAY and dragon.hp == 0:
             game_status = CLEAR  # クリア状態へ
             play_sound.stop()  # プレイBGM停止
-            opening_sound.play(-1)  # タイトルBGM再生
+            # opening_sound.play(-1)  # タイトルBGM再生
+            gameclear_sound.play()  # クリア音再生
 
         # イベント処理（キー入力・ウィンドウ操作など）
         for event in pygame.event.get():
             if event.type == QUIT:
-                pygame.mixer.music.stop()
+                # pygame.mixer.music.stop()
+                stop_all_sounds(opening_sound, play_sound)
                 pygame.quit()  # Pygame終了
-                sys.exit()  # プログラム終了
+                await asyncio.sleep(0.1)  # 0.1秒待つ（音停止の反映待ち
+                # sys.exit()  # プログラム終了
+                # js.eval("window.close()")
             elif event.type == KEYDOWN:
                 # プレイ中にスペースキーでビーム発射
                 if event.key == K_SPACE and game_status == PLAY:
@@ -280,9 +315,16 @@ async def main():
                     start_ticks = pygame.time.get_ticks()  # タイマーリセット
                 # ゲームオーバー・クリア画面でQキーでゲーム終了
                 elif event.key == K_q and game_status in (GAMEOVER, CLEAR):
-                    pygame.mixer.music.stop()
+                    # pygame.mixer.music.stop()
+                    stop_all_sounds(opening_sound, play_sound)
                     pygame.quit()  # Pygame終了
-                    sys.exit()  # プログラム終了
+                    await asyncio.sleep(0.1)  # 0.1秒待つ（音停止の反映待ち）
+                    # sys.exit()  # プログラム終了
+                    # タブを閉じる
+                    # js.eval("window.onbeforeunload = null")
+                    js.eval("window.close()")
+                    # または前のページに戻る
+                    js.eval("window.history.back()")
 
         # キー入力による魔女の移動処理
         pressed_keys = pygame.key.get_pressed()  # 押されているキー取得
