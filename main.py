@@ -13,7 +13,7 @@ import asyncio
 import js  # pygbag環境でのみ有効
 
 # スプライト関連クラスのインポート
-from sprites import Background, Majo, Dragon, Beam, Bomb, Explosion, Point
+from sprites import Background, Majo, Dragon, Beam, Bomb, Explosion, Point, HPBarSprite
 
 # ユーティリティ関数・定数のインポート
 from utils import (
@@ -21,9 +21,9 @@ from utils import (
     load_sound,
     SCREEN,
     Score,
+    TimerSprite,
     Counter,
     calculate_score_and_rank,
-    draw_hp_bar,
 )
 
 
@@ -132,11 +132,6 @@ async def main():
     # 時間管理用クロックの作成
     clock = pygame.time.Clock()  # FPS制御用
 
-    # 制限時間
-    TIME_LIMIT = 60  # 制限時間（秒）
-    time_left = TIME_LIMIT  # 残り時間
-    time_font = pygame.font.SysFont(None, 32)  # 残り時間表示用フォント
-
     # Spriteグループの登録
     group = pygame.sprite.RenderUpdates()  # 描画更新用グループ
     bomb_g = pygame.sprite.Group()  # 爆弾グループ
@@ -148,6 +143,14 @@ async def main():
     Explosion.containers = group  # 爆発エフェクトの所属グループ
     Point.containers = group  # 得点表示の所属グループ
     Score.containers = group  # スコア表示の所属グループ
+    TimerSprite.containers = group  # タイマーの所属グループ
+    HPBarSprite.containers = group  # ドラゴンHPバーの所属グループ
+
+    # 制限時間
+    timer_sprite = TimerSprite(60, pos=(SCREEN.left + 10, 10))
+    # TIME_LIMIT = 60  # 制限時間（秒）
+    # time_left = TIME_LIMIT  # 残り時間
+    # time_font = pygame.font.SysFont(None, 32)  # 残り時間表示用フォント
 
     # 各種画像・サウンドの読み込みと設定
     Beam.sound = load_sound("se_maoudamashii_se_ignition01.ogg")  # ビーム発射音
@@ -199,7 +202,7 @@ async def main():
     majo = Majo()  # 魔女キャラクター生成
     bg_img = Background(majo)  # 背景生成（魔女の参照渡し）
     dragon = None  # ドラゴンはゲーム開始時に生成するため、初期値はNone
-
+ 
     start_ticks = pygame.time.get_ticks()  # ゲーム開始時の時刻（ミリ秒）
 
     while True:
@@ -218,17 +221,19 @@ async def main():
         bg_img.draw(screen)  # 背景描画
         group.draw(screen)  # スプライト描画
 
-        # 敵のHPバー描画（ドラゴンがいる場合のみ）
-        if dragon and game_status == PLAY:
-            draw_hp_bar(screen, dragon, pos=(SCREEN.centerx - 100, 8))
+        # # 敵のHPバー描画（ドラゴンがいる場合のみ）
+        # if dragon and game_status == PLAY:
+        #     # draw_hp_bar(screen, dragon, pos=(SCREEN.centerx - 100, 8))
+        #     hp_bar_sprite.update()
 
         # 制限時間の計算と表示
         if game_status == PLAY:
             elapsed_sec = (pygame.time.get_ticks() - start_ticks) // 1000  # 経過秒数
-            time_left = max(0, TIME_LIMIT - elapsed_sec)  # 残り時間
+            time_left = max(0, 60 - elapsed_sec)  # 残り時間
             # 残り時間を画面左上に表示
-            timer_img = time_font.render(f"TIME: {time_left}", True, (255, 255, 255))
-            screen.blit(timer_img, (SCREEN.left + 10, 10))
+            # timer_img = time_font.render(f"TIME: {time_left}", True, (255, 255, 255))
+            # screen.blit(timer_img, (SCREEN.left + 10, 10))
+            timer_sprite.val = time_left  # 残り秒数を更新
 
             # 時間切れでゲームオーバー
             if time_left == 0:
@@ -251,17 +256,13 @@ async def main():
             font = pygame.font.Font("font/Bungee-Regular.ttf", 60)  # フォント設定
             game_msg = font.render("GAME OVER", True, (0, 0, 255))
             screen.blit(game_msg, (SCREEN.centerx - 180, SCREEN.centery - 100))
-            # # ゲームオーバー時はスコアを表示
-            # calculate_score_and_rank(
-            #     screen, time_left, Majo.life.val, pygame.font.SysFont(None, 48)
-            # )
             rq_font = pygame.font.SysFont(None, 48)
             text1 = rq_font.render("Restart (R) / Exit Game (Q)", True, (0, 0, 0))
             screen.blit(text1, (SCREEN.centerx - 200, SCREEN.centery))
 
         # タイトル時はメッセージ画像を表示
         elif game_status == INIT:
-            screen.blit(title_msg, (100, 100))  # メッセージ画像描画 
+            screen.blit(title_msg, (100, 100))  # メッセージ画像描画
 
         # 画面の内容を更新（ダブルバッファリング）
         pygame.display.update()  # 画面更新
@@ -298,6 +299,9 @@ async def main():
                 elif event.key == K_SPACE and game_status == INIT:
                     game_status = PLAY  # プレイ状態へ
                     dragon = Dragon()  # ドラゴン生成
+                    # ドラゴンのHPバー用スプライト
+                    hp_bar_sprite = HPBarSprite(dragon)
+                    hp_bar_sprite.update()
                     opening_sound.stop()  # タイトルBGM停止
                     play_sound.play(-1)  # プレイBGM再生
                     start_ticks = pygame.time.get_ticks()  # タイマーリセット
@@ -306,7 +310,10 @@ async def main():
                     game_status = PLAY  # プレイ状態へ
                     dragon.kill()  # 既存ドラゴン削除
                     majo.kill()  # 既存魔女削除
+                    hp_bar_sprite.kill()  # 既存HPバー削除
                     dragon = Dragon()  # 新ドラゴン生成
+                    hp_bar_sprite = HPBarSprite(dragon)
+                    hp_bar_sprite.update()  # HPバー更新
                     majo = Majo()  # 新魔女生成
                     Majo.life.reset()  # ライフリセット
                     opening_sound.stop()  # タイトルBGM停止
@@ -335,6 +342,7 @@ async def main():
 
         # FPS制御（描画スピード調整）
         clock.tick(60)  # 60FPSでループ
+        # print(f"FPS: {clock.get_fps():.2f}")  # 現在のフレームレートを表示
         await asyncio.sleep(0)  # 非同期処理のためのスリープ
 
 

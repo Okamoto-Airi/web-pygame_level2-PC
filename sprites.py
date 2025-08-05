@@ -213,8 +213,8 @@ class Dragon(pygame.sprite.Sprite):
             # dy = (
             #     0 if Majo.stage.val <= 2 else (random.random() * 2.0 - 1.0) * self.speed
             # )
-            dy = 0  # 横方向の移動量（ステージ1は固定）
-            Bomb(self, dy)  # 爆弾生成
+            # dy = 0  # 横方向の移動量（ステージ1は固定）
+            Bomb(self)  # 爆弾生成
 
         # ドラゴンの爆破シーン（スコア0で爆発アニメ＆消滅）
         if self.hp == 0:
@@ -309,7 +309,6 @@ class Bomb(pygame.sprite.Sprite):
     継承: pygame.sprite.Sprite
     Args:
         dragon: 爆弾を落とすドラゴンインスタンス
-        dy: 上下方向の移動量
     """
 
     IMAGE_COLORS, IMAGE_OFFSET = 4, 3  # 爆弾の色数とアニメコマ数
@@ -320,10 +319,9 @@ class Bomb(pygame.sprite.Sprite):
     EXP_IMAGE_OFFSET = 7  # 爆発アニメのコマ数
     EXP_ANIME_COUNT = 5  # 爆発アニメの繰り返し回数
 
-    def __init__(self, dragon, dy):
+    def __init__(self, dragon):
         # スプライトの初期化（所属グループに登録）
         # dragon: 爆弾を落とすドラゴンインスタンス
-        # dy: 上下方向の移動量
         pygame.sprite.Sprite.__init__(self, self.containers)
         # 爆弾の色をランダムで決定（4色）
         self.image_color = int(random.random() * Bomb.IMAGE_COLORS)
@@ -339,11 +337,10 @@ class Bomb(pygame.sprite.Sprite):
         )
         self.rect = self.image.get_rect()  # 位置情報
         self.rect.midleft = dragon.rect.midleft  # ドラゴンの左から落下開始
-        self.dy = dy  # 上下方向の移動量
 
     def update(self):
         # 毎フレーム左方向＋上下方向に移動
-        self.rect.move_ip(-Bomb.SPEED, self.dy)
+        self.rect.move_ip(-Bomb.SPEED, 0)
         # 画面左端に到達したら爆発アニメを生成し、爆弾自身は消滅
         if self.rect.left < SCREEN.left:
             Explosion(
@@ -404,3 +401,33 @@ class Point(pygame.sprite.Sprite):
         if self.anime_count == Point.MAX_ANIME_COUNT:
             self.kill()  # スプライトを消滅させる
             return
+
+
+class HPBarSprite(pygame.sprite.Sprite):
+    def __init__(self, dragon, pos=(SCREEN.centerx - 100, 8), size=(200, 20)):
+        super().__init__(self.containers)
+        self.dragon = dragon
+        self.pos = pos
+        self.size = size
+        self.font = pygame.font.SysFont(None, 20)
+        self.image = pygame.Surface(size, pygame.SRCALPHA)
+        self.rect = self.image.get_rect(topleft=pos)
+        self.update()
+
+    def update(self):
+        x, y = 0, 0
+        w, h = self.size
+        self.image.fill((0, 0, 0, 0))
+        pygame.draw.rect(self.image, (180, 180, 180), (x, y, w, h))
+        hp_ratio = max(0, self.dragon.hp / self.dragon.MAX_HP)
+        if hp_ratio > 0.5:
+            bar_color = (0, 255, 0)
+        elif hp_ratio > 0.2:
+            bar_color = (240, 240, 0)
+        else:
+            bar_color = (255, 0, 0)
+        pygame.draw.rect(self.image, bar_color, (x, y, int(w * hp_ratio), h))
+        pygame.draw.rect(self.image, (0, 0, 0), (x, y, w, h), 2)
+        hp_text = self.font.render(f"Dragon HP: {self.dragon.hp}/{self.dragon.MAX_HP}", True, (0, 0, 0))
+        text_rect = hp_text.get_rect(center=(w//2, h//2))
+        self.image.blit(hp_text, text_rect)
