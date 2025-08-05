@@ -178,7 +178,7 @@ class Dragon(pygame.sprite.Sprite):
     # LEFT, RIGHT = 0, 1  # 向き（左:0, 右:1）
     BOMB_PROB = 0.02  # 爆弾投下確率（3%）
     MINUS_POINT = 5  # ドラゴン撃破時の減点
-    MAX_HP = 5  # ドラゴンの最大HP
+    MAX_HP = 50  # ドラゴンの最大HP
     # 爆発アニメ
     EXP_IMAGE_WIDTH, EXP_IMAGE_HEIGHT = 320, 120  # 爆発画像の1コマの幅・高さ（ピクセル）
     EXP_IMAGE_OFFSET = 8  # 爆発アニメのコマ数
