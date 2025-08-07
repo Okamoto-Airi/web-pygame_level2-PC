@@ -207,7 +207,7 @@ class TimerSprite(Score):
     Scoreクラスを継承し、時間表示専用のフォーマットを使用。
     """
     def __init__(self, time_limit, pos=(10, 10)):
-        super().__init__(initval=time_limit, pos=pos, color=(255,255,255), form="TIME: #")
+        super().__init__(initval=time_limit, pos=pos, color=(255, 255, 255), form="TIME: #")
 
     def update(self):
         # 値が変わったときだけ画像再生成

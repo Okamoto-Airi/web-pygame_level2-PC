@@ -176,7 +176,7 @@ class Dragon(pygame.sprite.Sprite):
     START = SCREEN.midright  # 初期位置（画面右側）
     SPEED = 5  # 移動速度（ピクセル/フレーム）
     # LEFT, RIGHT = 0, 1  # 向き（左:0, 右:1）
-    BOMB_PROB = 0.02  # 爆弾投下確率（3%）
+    BOMB_PROB = 0.02  # 爆弾投下確率（2%）
     MINUS_POINT = 5  # ドラゴン撃破時の減点
     MAX_HP = 50  # ドラゴンの最大HP
     # 爆発アニメ

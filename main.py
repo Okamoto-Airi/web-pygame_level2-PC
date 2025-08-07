@@ -147,8 +147,8 @@ async def main():
     HPBarSprite.containers = group  # ドラゴンHPバーの所属グループ
 
     # 制限時間
-    timer_sprite = TimerSprite(60, pos=(SCREEN.left + 10, 10))
-    # TIME_LIMIT = 60  # 制限時間（秒）
+    TIME_LIMIT = 60  # 制限時間（秒）
+    timer_sprite = TimerSprite(TIME_LIMIT, pos=(SCREEN.left + 10, 10))
     # time_left = TIME_LIMIT  # 残り時間
     # time_font = pygame.font.SysFont(None, 32)  # 残り時間表示用フォント
 
@@ -229,17 +229,18 @@ async def main():
         # 制限時間の計算と表示
         if game_status == PLAY:
             elapsed_sec = (pygame.time.get_ticks() - start_ticks) // 1000  # 経過秒数
-            time_left = max(0, 60 - elapsed_sec)  # 残り時間
+            time_left = max(0, TIME_LIMIT - elapsed_sec)  # 残り時間
             # 残り時間を画面左上に表示
             # timer_img = time_font.render(f"TIME: {time_left}", True, (255, 255, 255))
             # screen.blit(timer_img, (SCREEN.left + 10, 10))
             timer_sprite.val = time_left  # 残り秒数を更新
 
-            # 時間切れでゲームオーバー
-            if time_left == 0:
-                game_status = GAMEOVER
-                play_sound.stop()
-                opening_sound.play(-1)
+            # # 時間切れでゲームオーバー
+            # if time_left == 0:
+            #     game_status = GAMEOVER
+            #     play_sound.stop()
+            #     # opening_sound.play(-1)
+            #     gameover_sound.play()  # ゲームオーバー音再生
 
         # クリア時はスコアを表示
         if game_status == CLEAR:
@@ -269,7 +270,7 @@ async def main():
 
         # ゲームステータスの変更判定
         # 魔女のライフが0になったらゲームオーバー
-        if game_status == PLAY and Majo.life.val == 0:
+        if game_status == PLAY and (Majo.life.val == 0 or time_left == 0):
             game_status = GAMEOVER  # ゲームオーバー状態へ
             play_sound.stop()  # プレイBGM停止
             # opening_sound.play(-1)  # タイトルBGM再生
@@ -316,7 +317,9 @@ async def main():
                     hp_bar_sprite.update()  # HPバー更新
                     majo = Majo()  # 新魔女生成
                     Majo.life.reset()  # ライフリセット
-                    opening_sound.stop()  # タイトルBGM停止
+                    # opening_sound.stop()  # タイトルBGM停止
+                    gameclear_sound.stop()  # クリア音停止
+                    gameover_sound.stop()  # ゲームオーバー音停止
                     play_sound.play(-1)  # プレイBGM再生
                     bg_img = Background(majo)  # 背景再生成
                     start_ticks = pygame.time.get_ticks()  # タイマーリセット
