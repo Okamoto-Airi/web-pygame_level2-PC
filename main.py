@@ -58,21 +58,27 @@ def collision_detection(majo, dragon, beam_g, bomb_g):
 
     # --- ビームと爆弾の衝突判定 ---
     group_collided = pygame.sprite.groupcollide(
-        bomb_g, beam_g, True, True
+        bomb_g, beam_g, False, True  # 爆弾は消さない
     )  # 爆弾とビームの衝突
     # group_collided: {爆弾: [当たったビーム, ...], ...}
     if group_collided:
         for bomb, beams in group_collided.items():
-            for beam in beams:
-                # 爆発エフェクト生成
-                Explosion(
-                    Beam.exp_images,
-                    bomb.rect.center,
-                    (Beam.EXP_IMAGE_WIDTH, Beam.EXP_IMAGE_HEIGHT),
-                    Beam.EXP_IMAGE_OFFSET,
-                    Beam.EXP_ANIME_COUNT,
-                    Beam.exp_sound,
-                )
+            if getattr(bomb, "invincible", False):
+                # 無敵爆弾は何もしない
+                continue
+            else:
+                # 通常爆弾は消す
+                bomb.kill()
+                for beam in beams:
+                    # 爆発エフェクト生成
+                    Explosion(
+                        Beam.exp_images,
+                        bomb.rect.center,
+                        (Beam.EXP_IMAGE_WIDTH, Beam.EXP_IMAGE_HEIGHT),
+                        Beam.EXP_IMAGE_OFFSET,
+                        Beam.EXP_ANIME_COUNT,
+                        Beam.exp_sound,
+                    )
         Beam.counter.val -= 1  # ビーム発射数を減らす
 
     # --- 魔女と爆弾の衝突判定 ---

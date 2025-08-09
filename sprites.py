@@ -215,6 +215,10 @@ class Dragon(pygame.sprite.Sprite):
             # )
             # dy = 0  # 横方向の移動量（ステージ1は固定）
             Bomb(self)  # 爆弾生成
+        elif random.random() < Dragon.BOMB_PROB:
+            # 30%の確率で無敵爆弾
+            invincible = random.random() < 0.3
+            Bomb(self, invincible=invincible)
 
         # ドラゴンの爆破シーン（スコア0で爆発アニメ＆消滅）
         if self.hp == 0:
@@ -319,22 +323,29 @@ class Bomb(pygame.sprite.Sprite):
     EXP_IMAGE_OFFSET = 7  # 爆発アニメのコマ数
     EXP_ANIME_COUNT = 5  # 爆発アニメの繰り返し回数
 
-    def __init__(self, dragon):
+    def __init__(self, dragon, invincible=False):
         # スプライトの初期化（所属グループに登録）
         # dragon: 爆弾を落とすドラゴンインスタンス
         pygame.sprite.Sprite.__init__(self, self.containers)
+
+        self.invincible = invincible  # 無敵爆弾フラグ
         # 爆弾の色をランダムで決定（4色）
         self.image_color = int(random.random() * Bomb.IMAGE_COLORS)
         self.image_off = 0  # アニメーション用オフセット
-        # 爆弾画像（色・コマ番号で切り出し）
-        self.image = Bomb.images.subsurface(
-            (
-                self.image_color * Bomb.IMAGE_WIDTH,
-                self.image_off * Bomb.IMAGE_HEIGHT,
-                Bomb.IMAGE_WIDTH,
-                Bomb.IMAGE_HEIGHT,
+
+        if self.invincible:
+            # 無敵爆弾用画像
+            self.image = load_image("dragon_fire_small.png")
+        else:
+            # 爆弾画像（色・コマ番号で切り出し）
+            self.image = Bomb.images.subsurface(
+                (
+                    self.image_color * Bomb.IMAGE_WIDTH,
+                    self.image_off * Bomb.IMAGE_HEIGHT,
+                    Bomb.IMAGE_WIDTH,
+                    Bomb.IMAGE_HEIGHT,
+                )
             )
-        )
         self.rect = self.image.get_rect()  # 位置情報
         self.rect.midleft = dragon.rect.midleft  # ドラゴンの左から落下開始
 
@@ -353,16 +364,18 @@ class Bomb(pygame.sprite.Sprite):
             )
             self.kill()
             return
-        # アニメーション用の画像切り替え（コマ番号を進める）
-        self.image_off = (self.image_off + 1) % Bomb.IMAGE_OFFSET
-        self.image = Bomb.images.subsurface(
-            (
-                self.image_color * Bomb.IMAGE_WIDTH,
-                self.image_off * Bomb.IMAGE_HEIGHT,
-                Bomb.IMAGE_WIDTH,
-                Bomb.IMAGE_HEIGHT,
+        # 無敵爆弾はアニメーションしない
+        if not self.invincible:
+            # アニメーション用の画像切り替え（コマ番号を進める）
+            self.image_off = (self.image_off + 1) % Bomb.IMAGE_OFFSET
+            self.image = Bomb.images.subsurface(
+                (
+                    self.image_color * Bomb.IMAGE_WIDTH,
+                    self.image_off * Bomb.IMAGE_HEIGHT,
+                    Bomb.IMAGE_WIDTH,
+                    Bomb.IMAGE_HEIGHT,
+                )
             )
-        )
 
 
 class Point(pygame.sprite.Sprite):
