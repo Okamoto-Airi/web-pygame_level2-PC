@@ -2,7 +2,7 @@
 import pygame
 
 # Pygameの定数を明示的にインポート（イベントやキーコード用）
-from pygame.locals import QUIT, KEYDOWN, K_SPACE, K_q, K_r, K_UP, K_DOWN
+from pygame.locals import QUIT, KEYDOWN, K_SPACE, K_q, K_r, K_UP, K_DOWN, K_w, K_a, K_s, K_d, K_RIGHT
 
 # システム終了用
 import sys
@@ -267,8 +267,8 @@ async def main():
                 # sys.exit()  # プログラム終了
                 # js.eval("window.close()")
             elif event.type == KEYDOWN:
-                # プレイ中にスペースキーでビーム発射
-                if event.key == K_SPACE and game_status == PLAY:
+                # プレイ中に右キーでビーム発射
+                if event.key == K_RIGHT and game_status == PLAY:
                     if Beam.counter.val < Beam.counter.maxval:  # ビーム発射上限チェック
                         Beam(majo)  # ビーム生成
                 # タイトル画面でスペースキーでゲーム開始
@@ -311,9 +311,9 @@ async def main():
 
         # キー入力による魔女の移動処理
         pressed_keys = pygame.key.get_pressed()  # 押されているキー取得
-        if pressed_keys[K_DOWN]:  # 下キー
+        if pressed_keys[K_s]:  # Sキー(下)
             majo.move_down()  # 魔女を下に移動
-        elif pressed_keys[K_UP]:  # 上キー
+        elif pressed_keys[K_w]:  # Wキー(上)
             majo.move_up()  # 魔女を上に移動
 
         # FPS制御（描画スピード調整）
