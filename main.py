@@ -2,7 +2,7 @@
 import pygame
 
 # Pygameの定数を明示的にインポート（イベントやキーコード用）
-from pygame.locals import QUIT, KEYDOWN, K_SPACE, K_q, K_r, K_UP, K_DOWN, K_w, K_a, K_s, K_d, K_RIGHT
+from pygame.locals import QUIT, KEYDOWN, K_SPACE, K_q, K_r, K_w, K_s, K_RIGHT
 
 # システム終了用
 import sys
